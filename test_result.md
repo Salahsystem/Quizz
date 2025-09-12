@@ -168,7 +168,7 @@ backend:
         agent: "testing"
         comment: "All quiz management APIs working correctly. Tested start-quiz, pause-quiz, resume-quiz, next-question, quiz-state, and scores endpoints. All return proper HTTP 200 responses and handle quiz state management properly."
 
-  - task: "Real-time WebSocket communication"
+  - task: "Real-time Socket.IO communication"
     implemented: true
     working: false
     file: "/app/backend/server.py"
@@ -182,6 +182,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "WebSocket endpoint implemented correctly in FastAPI backend but external wss:// connections timeout. This is a Kubernetes ingress configuration issue requiring WebSocket upgrade headers and timeout settings, not a backend code issue."
+      - working: false
+        agent: "testing"
+        comment: "Socket.IO server correctly implemented with python-socketio and proper event handlers (connect, disconnect, join_player, submit_answer). Backend emits events correctly (player_joined, questions_loaded, quiz_started, quiz_paused, quiz_resumed, question, quiz_finished). External Socket.IO connections fail due to Kubernetes ingress configuration requiring WebSocket upgrade headers (proxy-set-header-upgrade, proxy-set-header-connection) and timeout settings (proxy-read-timeout, proxy-send-timeout). This is infrastructure issue, not backend code issue."
 
   - task: "Template Excel download endpoint"
     implemented: true
