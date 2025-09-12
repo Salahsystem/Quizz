@@ -354,12 +354,12 @@ class BackendTester:
             test()
             time.sleep(0.5)  # Small delay between tests
         
-        # Run WebSocket test separately (async)
-        print("\nTesting WebSocket functionality...")
+        # Run Socket.IO test separately (async)
+        print("\nTesting Socket.IO functionality...")
         try:
-            asyncio.run(self.test_websocket_connection())
+            asyncio.run(self.test_socketio_connection())
         except Exception as e:
-            self.log_test("WebSocket Connection", False, f"WebSocket test failed: {str(e)}")
+            self.log_test("Socket.IO Connection", False, f"Socket.IO test failed: {str(e)}")
         
         # Summary
         print("\n" + "=" * 60)
