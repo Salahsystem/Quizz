@@ -107,15 +107,18 @@ user_problem_statement: "Crée une app Flask + Socket.IO pour un quiz familial a
 backend:
   - task: "FastAPI server with WebSocket support"
     implemented: true
-    working: "unknown"
+    working: false
     file: "/app/backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "unknown"
         agent: "main"
         comment: "Implemented FastAPI backend with WebSocket support, replacing Flask + Socket.IO. Need to test WebSocket connections and API endpoints."
+      - working: false
+        agent: "testing"
+        comment: "FastAPI server and all API endpoints working correctly. WebSocket endpoint implemented correctly but external WebSocket connections timeout due to Kubernetes ingress configuration issue. Needs ingress WebSocket upgrade headers and timeout settings for wss:// connections."
 
   - task: "Excel file upload and processing with openpyxl"
     implemented: true
