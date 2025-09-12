@@ -261,14 +261,13 @@ metadata:
 
 test_plan:
   current_focus:
-    - "FastAPI server with WebSocket support"
+    - "FastAPI server with Socket.IO support"
     - "Excel file upload and processing with openpyxl"
     - "QR code generation for local network access"
     - "Quiz management API endpoints"
-    - "Real-time WebSocket communication"
+    - "Real-time Socket.IO communication"
   stuck_tasks: 
-    - "FastAPI server with WebSocket support"
-    - "Real-time WebSocket communication"
+    - "Real-time Socket.IO communication"
   test_all: false
   test_priority: "high_first"
 
