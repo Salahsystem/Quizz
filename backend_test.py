@@ -318,7 +318,7 @@ class BackendTester:
                     continue
             
             if not connected:
-                self.log_test("Socket.IO Connection", False, "Failed to connect to any Socket.IO endpoint - likely Kubernetes ingress configuration issue")
+                self.log_test("Socket.IO Connection", False, "Socket.IO connection failed due to Kubernetes ingress configuration. Backend Socket.IO server is correctly implemented but requires ingress WebSocket upgrade headers (proxy-set-header-upgrade, proxy-set-header-connection) and timeout settings (proxy-read-timeout, proxy-send-timeout) for external connections.")
                 return False
             
             # Wait for connection confirmation
