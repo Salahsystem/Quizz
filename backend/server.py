@@ -177,51 +177,47 @@ def parse_excel_file(file_content: bytes):
     
     return questions
 
-# WebSocket endpoint
-@app.websocket("/ws/{client_id}")
-async def websocket_endpoint(websocket: WebSocket, client_id: str):
-    await manager.connect(websocket, client_id)
-    try:
-        while True:
-            data = await websocket.receive_text()
-            message = json.loads(data)
+# Socket.IO event handlers
+@sio.event
+async def connect(sid, environ):
+    print(f"Client {sid} connected")
+
+@sio.event
+async def disconnect(sid):
+    print(f"Client {sid} disconnected")
+    if sid in players:
+        del players[sid]
+        await sio.emit("player_left", {"players": list(players.values())})
+
+@sio.event
+async def join_player(sid, data):
+    player = Player(id=sid, name=data["name"])
+    players[sid] = player.dict()
+    
+    await sio.emit("player_joined", {
+        "player": player.dict(),
+        "players": list(players.values())
+    })
+
+@sio.event
+async def submit_answer(sid, data):
+    if sid in players and quiz_state["status"] == "active":
+        player = players[sid]
+        current_q_idx = quiz_state["current_question"]
+        
+        if current_q_idx < len(quiz_state["questions"]):
+            question = quiz_state["questions"][current_q_idx]
+            is_correct = data["answer"] == question["correct_answer"]
             
-            if message["type"] == "join_player":
-                player = Player(id=client_id, name=message["name"])
-                manager.players[client_id] = player.dict()
-                
-                await manager.broadcast(json.dumps({
-                    "type": "player_joined",
-                    "player": player.dict(),
-                    "players": list(manager.players.values())
-                }))
-                
-            elif message["type"] == "submit_answer":
-                if client_id in manager.players and manager.quiz_state["status"] == "active":
-                    player = manager.players[client_id]
-                    current_q_idx = manager.quiz_state["current_question"]
-                    
-                    if current_q_idx < len(manager.quiz_state["questions"]):
-                        question = manager.quiz_state["questions"][current_q_idx]
-                        is_correct = message["answer"] == question["correct_answer"]
-                        
-                        if is_correct:
-                            player["score"] += question["points"]
-                            manager.players[client_id] = player
-                        
-                        await manager.send_personal_message(json.dumps({
-                            "type": "answer_feedback",
-                            "correct": is_correct,
-                            "correct_answer": question["correct_answer"],
-                            "score": player["score"]
-                        }), client_id)
+            if is_correct:
+                player["score"] += question["points"]
+                players[sid] = player
             
-    except WebSocketDisconnect:
-        manager.disconnect(client_id)
-        await manager.broadcast(json.dumps({
-            "type": "player_left",
-            "players": list(manager.players.values())
-        }))
+            await sio.emit("answer_feedback", {
+                "correct": is_correct,
+                "correct_answer": question["correct_answer"],
+                "score": player["score"]
+            }, room=sid)
 
 # API Routes
 @api_router.get("/")
