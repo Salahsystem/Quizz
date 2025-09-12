@@ -298,11 +298,27 @@ class BackendTester:
             
             print(f"Attempting to connect to Socket.IO server at: {BACKEND_URL}")
             
-            # Connect to Socket.IO server with timeout
-            try:
-                await asyncio.wait_for(sio.connect(BACKEND_URL), timeout=10.0)
-            except asyncio.TimeoutError:
-                self.log_test("Socket.IO Connection", False, "Connection timeout - Socket.IO server may not be properly configured")
+            # Try different Socket.IO connection approaches
+            connection_urls = [
+                BACKEND_URL,  # Direct connection
+                f"{BACKEND_URL}/socket.io/",  # Standard Socket.IO path
+                f"{BACKEND_URL}/api/socket.io/"  # API prefixed path
+            ]
+            
+            connected = False
+            for url in connection_urls:
+                try:
+                    print(f"Trying connection to: {url}")
+                    await asyncio.wait_for(sio.connect(url), timeout=5.0)
+                    connected = True
+                    print(f"Successfully connected to: {url}")
+                    break
+                except Exception as e:
+                    print(f"Failed to connect to {url}: {str(e)}")
+                    continue
+            
+            if not connected:
+                self.log_test("Socket.IO Connection", False, "Failed to connect to any Socket.IO endpoint - likely Kubernetes ingress configuration issue")
                 return False
             
             # Wait for connection confirmation
