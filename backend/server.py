@@ -297,18 +297,15 @@ async def start_quiz():
 
 @api_router.post("/next-question")
 async def next_question():
-    if manager.quiz_state["status"] != "active":
+    if quiz_state["status"] != "active":
         raise HTTPException(status_code=400, detail="Quiz is not active")
     
-    manager.quiz_state["current_question"] += 1
+    quiz_state["current_question"] += 1
     
-    if manager.quiz_state["current_question"] >= len(manager.quiz_state["questions"]):
+    if quiz_state["current_question"] >= len(quiz_state["questions"]):
         # Quiz finished
-        manager.quiz_state["status"] = "finished"
-        await manager.broadcast(json.dumps({
-            "type": "quiz_finished",
-            "final_scores": list(manager.players.values())
-        }))
+        quiz_state["status"] = "finished"
+        await sio.emit("quiz_finished", {"final_scores": list(players.values())})
         return {"message": "Quiz finished"}
     
     await send_current_question()
@@ -316,18 +313,14 @@ async def next_question():
 
 @api_router.post("/pause-quiz")
 async def pause_quiz():
-    manager.quiz_state["status"] = "paused"
-    await manager.broadcast(json.dumps({
-        "type": "quiz_paused"
-    }))
+    quiz_state["status"] = "paused"
+    await sio.emit("quiz_paused", {})
     return {"message": "Quiz paused"}
 
 @api_router.post("/resume-quiz")
 async def resume_quiz():
-    manager.quiz_state["status"] = "active"
-    await manager.broadcast(json.dumps({
-        "type": "quiz_resumed"
-    }))
+    quiz_state["status"] = "active"
+    await sio.emit("quiz_resumed", {})
     return {"message": "Quiz resumed"}
 
 @api_router.get("/quiz-state")
