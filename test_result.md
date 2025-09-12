@@ -167,15 +167,18 @@ backend:
 
   - task: "Real-time WebSocket communication"
     implemented: true
-    working: "unknown"
+    working: false
     file: "/app/backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "unknown"
         agent: "main"
         comment: "Implemented WebSocket endpoint with connection management, player joining, answer submission."
+      - working: false
+        agent: "testing"
+        comment: "WebSocket endpoint implemented correctly in FastAPI backend but external wss:// connections timeout. This is a Kubernetes ingress configuration issue requiring WebSocket upgrade headers and timeout settings, not a backend code issue."
 
 frontend:
   - task: "React app with routing and mobile-responsive design"
