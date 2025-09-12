@@ -368,6 +368,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount Socket.IO app
+socket_app = socketio.ASGIApp(sio, app)
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
