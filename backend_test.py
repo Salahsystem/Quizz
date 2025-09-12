@@ -261,7 +261,7 @@ class BackendTester:
             ws_url = BACKEND_URL.replace('https://', 'wss://').replace('http://', 'ws://')
             ws_endpoint = f"{ws_url}/ws/test_client_123"
             
-            async with websockets.connect(ws_endpoint, timeout=10) as websocket:
+            async with websockets.connect(ws_endpoint) as websocket:
                 # Test connection established
                 self.log_test("WebSocket Connection", True, "WebSocket connection established successfully")
                 
