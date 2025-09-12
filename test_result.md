@@ -264,11 +264,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "FastAPI server with Socket.IO support"
-    - "Excel file upload and processing with openpyxl"
-    - "QR code generation for local network access"
-    - "Quiz management API endpoints"
-    - "Real-time Socket.IO communication"
+    - "Player interface with name entry and quiz gameplay"
+    - "Socket.IO client integration"
+    - "Real-time quiz gameplay flow"
+    - "Excel upload and quiz creation workflow"
+    - "Multi-player quiz session management"
   stuck_tasks: 
     - "Real-time Socket.IO communication"
   test_all: false
