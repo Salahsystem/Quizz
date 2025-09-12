@@ -269,14 +269,13 @@ async def upload_excel(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="No valid questions found in Excel file")
     
     # Store questions in quiz state
-    manager.quiz_state["questions"] = [q.dict() for q in questions]
-    manager.quiz_state["quiz_id"] = str(uuid.uuid4())
+    quiz_state["questions"] = [q.dict() for q in questions]
+    quiz_state["quiz_id"] = str(uuid.uuid4())
     
-    await manager.broadcast(json.dumps({
-        "type": "questions_loaded",
+    await sio.emit("questions_loaded", {
         "count": len(questions),
         "questions": [q.dict() for q in questions]
-    }))
+    })
     
     return {"message": f"Successfully loaded {len(questions)} questions", "questions": questions}
 
