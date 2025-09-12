@@ -409,6 +409,7 @@ class BackendTester:
             self.test_template_excel_download,
             self.test_excel_upload_processing,
             self.test_quiz_management_apis,
+            self.test_socketio_server_configuration,
         ]
         
         for test in tests:
