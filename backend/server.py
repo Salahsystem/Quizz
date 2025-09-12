@@ -86,10 +86,8 @@ class PlayerAnswer(BaseModel):
 # Helper function to get local IP
 def get_local_ip():
     try:
-        # Connect to a remote address to determine local IP
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-            s.connect(("8.8.8.8", 80))
-            return s.getsockname()[0]
+        # In development environment, use localhost
+        return "localhost"
     except:
         return "localhost"
 
