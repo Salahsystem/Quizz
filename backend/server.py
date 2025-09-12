@@ -326,24 +326,23 @@ async def resume_quiz():
 @api_router.get("/quiz-state")
 async def get_quiz_state():
     return {
-        "status": manager.quiz_state["status"],
-        "current_question": manager.quiz_state["current_question"],
-        "total_questions": len(manager.quiz_state["questions"]),
-        "players": list(manager.players.values())
+        "status": quiz_state["status"],
+        "current_question": quiz_state["current_question"],
+        "total_questions": len(quiz_state["questions"]),
+        "players": list(players.values())
     }
 
 @api_router.get("/scores")
 async def get_scores():
-    sorted_players = sorted(manager.players.values(), key=lambda x: x["score"], reverse=True)
+    sorted_players = sorted(players.values(), key=lambda x: x["score"], reverse=True)
     return {"scores": sorted_players}
 
 async def send_current_question():
-    if manager.quiz_state["current_question"] < len(manager.quiz_state["questions"]):
-        question = manager.quiz_state["questions"][manager.quiz_state["current_question"]]
-        manager.quiz_state["question_start_time"] = datetime.now(timezone.utc)
+    if quiz_state["current_question"] < len(quiz_state["questions"]):
+        question = quiz_state["questions"][quiz_state["current_question"]]
+        quiz_state["question_start_time"] = datetime.now(timezone.utc)
         
-        await manager.broadcast(json.dumps({
-            "type": "question",
+        await sio.emit("question", {
             "question": {
                 "id": question["id"],
                 "question": question["question"],
@@ -354,9 +353,9 @@ async def send_current_question():
                 "duration": question["duration"],
                 "points": question["points"]
             },
-            "question_number": manager.quiz_state["current_question"] + 1,
-            "total_questions": len(manager.quiz_state["questions"])
-        }))
+            "question_number": quiz_state["current_question"] + 1,
+            "total_questions": len(quiz_state["questions"])
+        })
 
 # Include the router in the main app
 app.include_router(api_router)
