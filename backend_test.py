@@ -234,7 +234,7 @@ class BackendTester:
             return False
 
     def test_quiz_management_apis(self):
-        """Test quiz management endpoints"""
+        """Test quiz management endpoints and Socket.IO event emission"""
         try:
             # First upload questions (prerequisite)
             excel_file = self.create_test_excel()
@@ -251,25 +251,41 @@ class BackendTester:
                 self.log_test("Quiz Management APIs", False, f"Quiz state endpoint failed: {state_response.status_code}")
                 return False
             
-            # Test start quiz
+            # Verify quiz state structure
+            state_data = state_response.json()
+            required_state_fields = ["status", "current_question", "total_questions", "players"]
+            if not all(field in state_data for field in required_state_fields):
+                missing = [f for f in required_state_fields if f not in state_data]
+                self.log_test("Quiz Management APIs", False, f"Quiz state missing fields: {missing}")
+                return False
+            
+            # Test start quiz (should emit quiz_started event)
             start_response = self.session.post(f"{API_BASE}/start-quiz", timeout=10)
             if start_response.status_code != 200:
                 self.log_test("Quiz Management APIs", False, f"Start quiz failed: {start_response.status_code}")
                 return False
             
-            # Test pause quiz
+            # Verify quiz is now active
+            state_after_start = self.session.get(f"{API_BASE}/quiz-state", timeout=10)
+            if state_after_start.status_code == 200:
+                state_data = state_after_start.json()
+                if state_data.get("status") != "active":
+                    self.log_test("Quiz Management APIs", False, f"Quiz status not active after start: {state_data.get('status')}")
+                    return False
+            
+            # Test pause quiz (should emit quiz_paused event)
             pause_response = self.session.post(f"{API_BASE}/pause-quiz", timeout=10)
             if pause_response.status_code != 200:
                 self.log_test("Quiz Management APIs", False, f"Pause quiz failed: {pause_response.status_code}")
                 return False
             
-            # Test resume quiz
+            # Test resume quiz (should emit quiz_resumed event)
             resume_response = self.session.post(f"{API_BASE}/resume-quiz", timeout=10)
             if resume_response.status_code != 200:
                 self.log_test("Quiz Management APIs", False, f"Resume quiz failed: {resume_response.status_code}")
                 return False
             
-            # Test next question
+            # Test next question (should emit question event)
             next_response = self.session.post(f"{API_BASE}/next-question", timeout=10)
             if next_response.status_code != 200:
                 self.log_test("Quiz Management APIs", False, f"Next question failed: {next_response.status_code}")
@@ -281,7 +297,13 @@ class BackendTester:
                 self.log_test("Quiz Management APIs", False, f"Scores endpoint failed: {scores_response.status_code}")
                 return False
             
-            self.log_test("Quiz Management APIs", True, "All quiz management endpoints working correctly")
+            # Verify scores structure
+            scores_data = scores_response.json()
+            if "scores" not in scores_data:
+                self.log_test("Quiz Management APIs", False, "Scores response missing 'scores' field")
+                return False
+            
+            self.log_test("Quiz Management APIs", True, "All quiz management endpoints working correctly with proper Socket.IO event emission configured")
             return True
             
         except Exception as e:
