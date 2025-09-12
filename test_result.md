@@ -262,6 +262,6 @@ test_plan:
 
 agent_communication:
   - agent: "main"
-    message: "Implemented complete family quiz application using FastAPI + React + WebSockets instead of Flask + Socket.IO. Frontend UI is working and looks great. Need to test all backend API endpoints, WebSocket connections, Excel upload/processing, and real-time quiz functionality. Socket.IO client may need adjustment for FastAPI WebSocket compatibility."
+    message: "Updated backend from FastAPI WebSockets to python-socketio for full Socket.IO compatibility. Frontend Socket.IO client now successfully connects and players can join lobbies. Need comprehensive backend testing to verify all endpoints and real-time functionality work correctly."
   - agent: "testing"
     message: "Backend testing completed. All API endpoints working perfectly: QR code generation, Excel upload/processing with red cell detection, template download, and quiz management APIs all pass tests. WebSocket endpoint is correctly implemented but external connections timeout due to Kubernetes ingress configuration needing WebSocket upgrade headers and timeout settings. This is an infrastructure issue, not backend code issue."
