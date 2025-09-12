@@ -254,7 +254,9 @@ test_plan:
     - "QR code generation for local network access"
     - "Quiz management API endpoints"
     - "Real-time WebSocket communication"
-  stuck_tasks: []
+  stuck_tasks: 
+    - "FastAPI server with WebSocket support"
+    - "Real-time WebSocket communication"
   test_all: false
   test_priority: "high_first"
 
