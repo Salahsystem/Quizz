@@ -28,55 +28,29 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+# Create Socket.IO server
+sio = socketio.AsyncServer(
+    async_mode='asgi',
+    cors_allowed_origins="*"
+)
+
 # Create the main app without a prefix
 app = FastAPI()
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
-# WebSocket connection manager
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: Dict[str, WebSocket] = {}
-        self.players: Dict[str, Dict] = {}
-        self.quiz_state = {
-            "status": "waiting",  # waiting, lobby, active, paused, finished
-            "current_question": 0,
-            "questions": [],
-            "quiz_id": None,
-            "start_time": None,
-            "question_start_time": None
-        }
+# Quiz state and player management
+quiz_state = {
+    "status": "waiting",  # waiting, lobby, active, paused, finished
+    "current_question": 0,
+    "questions": [],
+    "quiz_id": None,
+    "start_time": None,
+    "question_start_time": None
+}
 
-    async def connect(self, websocket: WebSocket, client_id: str):
-        await websocket.accept()
-        self.active_connections[client_id] = websocket
-
-    def disconnect(self, client_id: str):
-        if client_id in self.active_connections:
-            del self.active_connections[client_id]
-        if client_id in self.players:
-            del self.players[client_id]
-
-    async def send_personal_message(self, message: str, client_id: str):
-        if client_id in self.active_connections:
-            try:
-                await self.active_connections[client_id].send_text(message)
-            except:
-                self.disconnect(client_id)
-
-    async def broadcast(self, message: str):
-        disconnected = []
-        for client_id, connection in self.active_connections.items():
-            try:
-                await connection.send_text(message)
-            except:
-                disconnected.append(client_id)
-        
-        for client_id in disconnected:
-            self.disconnect(client_id)
-
-manager = ConnectionManager()
+players = {}  # {session_id: player_data}
 
 # Define Models
 class QuizQuestion(BaseModel):
