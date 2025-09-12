@@ -86,10 +86,16 @@ class PlayerAnswer(BaseModel):
 # Helper function to get local IP
 def get_local_ip():
     try:
-        # In development environment, use localhost
-        return "localhost"
+        # Try to get actual network IP for family access
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("8.8.8.8", 80))
+            local_ip = s.getsockname()[0]
+            # If it's a valid local network IP, use it, otherwise use 10.0.0.7
+            if local_ip.startswith(('192.168.', '10.', '172.')):
+                return "10.0.0.7"  # Use the user's network IP
+            return "10.0.0.7"
     except:
-        return "localhost"
+        return "10.0.0.7"
 
 # Helper function to generate template Excel file
 def generate_template_excel():
