@@ -180,6 +180,18 @@ backend:
         agent: "testing"
         comment: "WebSocket endpoint implemented correctly in FastAPI backend but external wss:// connections timeout. This is a Kubernetes ingress configuration issue requiring WebSocket upgrade headers and timeout settings, not a backend code issue."
 
+  - task: "Template Excel download endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Template Excel download working perfectly. Generates valid Excel file with proper headers and 3 sample questions with red cell marking for correct answers."
+
 frontend:
   - task: "React app with routing and mobile-responsive design"
     implemented: true
