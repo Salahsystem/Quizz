@@ -281,17 +281,14 @@ async def upload_excel(file: UploadFile = File(...)):
 
 @api_router.post("/start-quiz")
 async def start_quiz():
-    if not manager.quiz_state["questions"]:
+    if not quiz_state["questions"]:
         raise HTTPException(status_code=400, detail="No questions loaded")
     
-    manager.quiz_state["status"] = "active"
-    manager.quiz_state["current_question"] = 0
-    manager.quiz_state["start_time"] = datetime.now(timezone.utc)
+    quiz_state["status"] = "active"
+    quiz_state["current_question"] = 0
+    quiz_state["start_time"] = datetime.now(timezone.utc)
     
-    await manager.broadcast(json.dumps({
-        "type": "quiz_started",
-        "status": "active"
-    }))
+    await sio.emit("quiz_started", {"status": "active"})
     
     # Send first question
     await send_current_question()
