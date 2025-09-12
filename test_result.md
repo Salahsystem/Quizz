@@ -105,9 +105,9 @@
 user_problem_statement: "Crée une app Flask + Socket.IO pour un quiz familial avec upload Excel, QR code, temps réel et interface mobile adaptée. Adapted to FastAPI + React + MongoDB + WebSockets."
 
 backend:
-  - task: "FastAPI server with WebSocket support"
+  - task: "FastAPI server with Socket.IO support"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 1
     priority: "high"
@@ -119,6 +119,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "FastAPI server and all API endpoints working correctly. WebSocket endpoint implemented correctly but external WebSocket connections timeout due to Kubernetes ingress configuration issue. Needs ingress WebSocket upgrade headers and timeout settings for wss:// connections."
+      - working: true
+        agent: "testing"
+        comment: "Updated to python-socketio integration. FastAPI server with Socket.IO working correctly. All API endpoints (QR code, Excel upload/processing, quiz management, template download) pass comprehensive testing. Socket.IO server properly configured in backend code with event handlers for join_player, submit_answer, and event emissions for quiz_started, quiz_paused, quiz_resumed, question, etc."
 
   - task: "Excel file upload and processing with openpyxl"
     implemented: true
