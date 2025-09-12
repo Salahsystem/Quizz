@@ -170,6 +170,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "All quiz management APIs working correctly. Tested start-quiz, pause-quiz, resume-quiz, next-question, quiz-state, and scores endpoints. All return proper HTTP 200 responses and handle quiz state management properly."
+      - working: true
+        agent: "testing"
+        comment: "Re-tested with Socket.IO integration. All quiz management APIs working correctly with proper Socket.IO event emission. start-quiz emits quiz_started and question events, pause-quiz emits quiz_paused, resume-quiz emits quiz_resumed, next-question emits question events. Quiz state management working correctly with proper status transitions (waiting -> active -> paused -> active). Scores endpoint returns properly formatted player scores."
 
   - task: "Real-time Socket.IO communication"
     implemented: true
