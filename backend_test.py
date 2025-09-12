@@ -7,7 +7,7 @@ Tests FastAPI server, WebSocket connections, Excel processing, QR code generatio
 import asyncio
 import json
 import requests
-import websockets
+import socketio
 import openpyxl
 from io import BytesIO
 import base64
