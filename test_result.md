@@ -152,15 +152,18 @@ backend:
 
   - task: "Quiz management API endpoints"
     implemented: true
-    working: "unknown"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "unknown"
         agent: "main"
         comment: "Implemented start-quiz, next-question, pause-quiz, resume-quiz, and scoring endpoints."
+      - working: true
+        agent: "testing"
+        comment: "All quiz management APIs working correctly. Tested start-quiz, pause-quiz, resume-quiz, next-question, quiz-state, and scores endpoints. All return proper HTTP 200 responses and handle quiz state management properly."
 
   - task: "Real-time WebSocket communication"
     implemented: true
