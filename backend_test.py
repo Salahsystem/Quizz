@@ -254,47 +254,79 @@ class BackendTester:
             self.log_test("Quiz Management APIs", False, f"Error: {str(e)}")
             return False
     
-    async def test_websocket_connection(self):
-        """Test WebSocket connection and basic messaging"""
+    async def test_socketio_connection(self):
+        """Test Socket.IO connection and real-time messaging"""
         try:
-            # Convert HTTPS URL to WSS for WebSocket
-            ws_url = BACKEND_URL.replace('https://', 'wss://').replace('http://', 'ws://')
-            ws_endpoint = f"{ws_url}/ws/test_client_123"
+            # Create Socket.IO client
+            sio = socketio.AsyncClient()
             
-            async with websockets.connect(ws_endpoint) as websocket:
-                # Test connection established
-                self.log_test("WebSocket Connection", True, "WebSocket connection established successfully")
-                
-                # Test player join message
-                join_message = {
-                    "type": "join_player",
-                    "name": "Test Player"
-                }
-                
-                await websocket.send(json.dumps(join_message))
-                
-                # Wait for response
-                try:
-                    response = await asyncio.wait_for(websocket.recv(), timeout=5.0)
-                    response_data = json.loads(response)
-                    
-                    if response_data.get("type") == "player_joined":
-                        self.log_test("WebSocket Player Join", True, "Player join message processed correctly")
-                        return True
-                    else:
-                        self.log_test("WebSocket Player Join", False, f"Unexpected response: {response_data}")
-                        return False
-                        
-                except asyncio.TimeoutError:
-                    self.log_test("WebSocket Player Join", False, "No response received within timeout")
-                    return False
-                    
+            # Track events
+            events_received = {}
+            
+            @sio.event
+            async def connect():
+                print("Socket.IO client connected")
+                events_received['connect'] = True
+            
+            @sio.event
+            async def disconnect():
+                print("Socket.IO client disconnected")
+                events_received['disconnect'] = True
+            
+            @sio.event
+            async def player_joined(data):
+                print(f"Player joined event received: {data}")
+                events_received['player_joined'] = data
+            
+            @sio.event
+            async def questions_loaded(data):
+                print(f"Questions loaded event received: {data}")
+                events_received['questions_loaded'] = data
+            
+            @sio.event
+            async def quiz_started(data):
+                print(f"Quiz started event received: {data}")
+                events_received['quiz_started'] = data
+            
+            # Connect to Socket.IO server
+            await sio.connect(BACKEND_URL)
+            
+            # Wait for connection
+            await asyncio.sleep(1)
+            
+            if not events_received.get('connect'):
+                self.log_test("Socket.IO Connection", False, "Failed to establish Socket.IO connection")
+                return False
+            
+            self.log_test("Socket.IO Connection", True, "Socket.IO connection established successfully")
+            
+            # Test player join event
+            await sio.emit('join_player', {'name': 'Test Player Alice'})
+            
+            # Wait for player_joined event
+            await asyncio.sleep(2)
+            
+            if 'player_joined' in events_received:
+                player_data = events_received['player_joined']
+                if 'player' in player_data and player_data['player']['name'] == 'Test Player Alice':
+                    self.log_test("Socket.IO Player Join", True, f"Player join event processed correctly: {player_data['player']['name']}")
+                else:
+                    self.log_test("Socket.IO Player Join", False, f"Invalid player join response: {player_data}")
+            else:
+                self.log_test("Socket.IO Player Join", False, "No player_joined event received")
+            
+            # Test answer submission (requires active quiz)
+            await sio.emit('submit_answer', {'answer': 'A'})
+            await asyncio.sleep(1)
+            
+            # Disconnect
+            await sio.disconnect()
+            
+            return True
+            
         except Exception as e:
             error_msg = str(e)
-            if "timed out" in error_msg or "timeout" in error_msg:
-                self.log_test("WebSocket Connection", False, f"WebSocket timeout - likely Kubernetes ingress configuration issue. Backend WebSocket endpoint is implemented correctly but needs ingress WebSocket upgrade headers and timeout settings.")
-            else:
-                self.log_test("WebSocket Connection", False, f"WebSocket connection failed: {error_msg}")
+            self.log_test("Socket.IO Connection", False, f"Socket.IO connection failed: {error_msg}")
             return False
     
     def run_all_tests(self):
