@@ -257,16 +257,24 @@ class BackendTester:
     async def test_socketio_connection(self):
         """Test Socket.IO connection and real-time messaging"""
         try:
-            # Create Socket.IO client
-            sio = socketio.AsyncClient()
+            # Create Socket.IO client with debugging
+            sio = socketio.AsyncClient(logger=True, engineio_logger=True)
             
             # Track events
             events_received = {}
+            connection_successful = False
             
             @sio.event
             async def connect():
-                print("Socket.IO client connected")
+                nonlocal connection_successful
+                print("Socket.IO client connected successfully")
                 events_received['connect'] = True
+                connection_successful = True
+            
+            @sio.event
+            async def connect_error(data):
+                print(f"Socket.IO connection error: {data}")
+                events_received['connect_error'] = data
             
             @sio.event
             async def disconnect():
@@ -288,23 +296,31 @@ class BackendTester:
                 print(f"Quiz started event received: {data}")
                 events_received['quiz_started'] = data
             
-            # Connect to Socket.IO server
-            await sio.connect(BACKEND_URL)
+            print(f"Attempting to connect to Socket.IO server at: {BACKEND_URL}")
             
-            # Wait for connection
-            await asyncio.sleep(1)
+            # Connect to Socket.IO server with timeout
+            try:
+                await asyncio.wait_for(sio.connect(BACKEND_URL), timeout=10.0)
+            except asyncio.TimeoutError:
+                self.log_test("Socket.IO Connection", False, "Connection timeout - Socket.IO server may not be properly configured")
+                return False
             
-            if not events_received.get('connect'):
-                self.log_test("Socket.IO Connection", False, "Failed to establish Socket.IO connection")
+            # Wait for connection confirmation
+            await asyncio.sleep(2)
+            
+            if not connection_successful:
+                error_info = events_received.get('connect_error', 'Unknown connection error')
+                self.log_test("Socket.IO Connection", False, f"Failed to establish Socket.IO connection: {error_info}")
                 return False
             
             self.log_test("Socket.IO Connection", True, "Socket.IO connection established successfully")
             
             # Test player join event
+            print("Testing player join event...")
             await sio.emit('join_player', {'name': 'Test Player Alice'})
             
             # Wait for player_joined event
-            await asyncio.sleep(2)
+            await asyncio.sleep(3)
             
             if 'player_joined' in events_received:
                 player_data = events_received['player_joined']
@@ -313,19 +329,21 @@ class BackendTester:
                 else:
                     self.log_test("Socket.IO Player Join", False, f"Invalid player join response: {player_data}")
             else:
-                self.log_test("Socket.IO Player Join", False, "No player_joined event received")
+                self.log_test("Socket.IO Player Join", False, "No player_joined event received - Socket.IO events may not be working")
             
-            # Test answer submission (requires active quiz)
+            # Test answer submission (this will fail gracefully if no active quiz)
+            print("Testing answer submission...")
             await sio.emit('submit_answer', {'answer': 'A'})
             await asyncio.sleep(1)
             
             # Disconnect
             await sio.disconnect()
             
-            return True
+            return connection_successful
             
         except Exception as e:
             error_msg = str(e)
+            print(f"Socket.IO test exception: {error_msg}")
             self.log_test("Socket.IO Connection", False, f"Socket.IO connection failed: {error_msg}")
             return False
     
