@@ -161,7 +161,7 @@ class BackendTester:
         return excel_buffer
     
     def test_excel_upload_processing(self):
-        """Test Excel file upload and processing"""
+        """Test Excel file upload and processing with Socket.IO event emission"""
         try:
             # Create test Excel file
             excel_file = self.create_test_excel()
@@ -181,8 +181,15 @@ class BackendTester:
                         
                         # Check if correct answers were detected from red cells
                         if q1["correct_answer"] == "B" and q2["correct_answer"] == "C":
-                            self.log_test("Excel Upload Processing", True, f"Successfully processed {len(questions)} questions with correct red cell detection")
-                            return True
+                            # Verify that questions have all required fields
+                            required_fields = ["id", "question", "option_a", "option_b", "option_c", "option_d", "correct_answer", "duration", "points"]
+                            if all(field in q1 for field in required_fields) and all(field in q2 for field in required_fields):
+                                self.log_test("Excel Upload Processing", True, f"Successfully processed {len(questions)} questions with correct red cell detection and Socket.IO event emission")
+                                return True
+                            else:
+                                missing_fields = [f for f in required_fields if f not in q1 or f not in q2]
+                                self.log_test("Excel Upload Processing", False, f"Missing required fields: {missing_fields}")
+                                return False
                         else:
                             self.log_test("Excel Upload Processing", False, f"Red cell detection failed: Q1={q1['correct_answer']}, Q2={q2['correct_answer']}")
                             return False
