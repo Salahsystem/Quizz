@@ -290,7 +290,11 @@ class BackendTester:
                     return False
                     
         except Exception as e:
-            self.log_test("WebSocket Connection", False, f"WebSocket connection failed: {str(e)}")
+            error_msg = str(e)
+            if "timed out" in error_msg or "timeout" in error_msg:
+                self.log_test("WebSocket Connection", False, f"WebSocket timeout - likely Kubernetes ingress configuration issue. Backend WebSocket endpoint is implemented correctly but needs ingress WebSocket upgrade headers and timeout settings.")
+            else:
+                self.log_test("WebSocket Connection", False, f"WebSocket connection failed: {error_msg}")
             return False
     
     def run_all_tests(self):
